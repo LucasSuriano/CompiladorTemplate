@@ -1,9 +1,13 @@
 package lyc.compiler;
 
 import java_cup.runtime.*;
+import lyc.compiler.files.SymbolTableGenerator;
 
 class Parser;
 
+action code {:
+SymbolTableGenerator gts = SymbolTableGenerator.getInstance();
+:};
 
 // Terminals
 terminal ASSIG;
@@ -11,29 +15,150 @@ terminal PLUS;
 terminal SUB;
 terminal MULT;
 terminal DIV;
+
+terminal GREATER;
+terminal LESS;
+terminal EQUAL;
+
+terminal AND;
+terminal OR;
+terminal NOT;
+
+terminal CONTAR_PRIMOS;
+terminal APLICAR_DESCUENTO;
+
 terminal OPEN_BRACKET;
 terminal CLOSE_BRACKET;
+terminal OPEN_CURLY_BRACKET;
+terminal CLOSE_CURLY_BRACKET;
+terminal OPEN_SQUARE_BRACKET;
+terminal CLOSE_SQUARE_BRACKET;
+terminal COLON;
+terminal COMMA;
+
+terminal INIT;
+terminal LEER;
+terminal ESCRIBIR;
+
+terminal MIENTRAS;
+terminal SI;
+terminal SINO;
+
+terminal INT;
+terminal FLOAT;
+terminal STRING;
+
 terminal INTEGER_CONSTANT;
+terminal FLOAT_CONSTANT;
+terminal STRING_CONSTANT;
 terminal IDENTIFIER;
 
 // Non Terminals
+non terminal program;
 non terminal sentence;
 non terminal assignment;
 non terminal expression;
+non terminal expression2;
 non terminal term;
 non terminal factor;
+non terminal funcion;
+non terminal init_block;
+non terminal leer;
+non terminal escribir;
+non terminal si;
+non terminal mientras;
+non terminal list_statement;
+non terminal statement;
+non terminal variable;
+non terminal data_type;
+non terminal sentencia_si;
+non terminal condicion;
+non terminal lista_comparacion;
+non terminal comparacion;
+non terminal comparar_matematico;
+non terminal comparar_logico;
+non terminal contar_primos;
+non terminal lista_parametros;
+non terminal parametros;
+non terminal lista_precios;
+non terminal precio;
+non terminal aplicar_descuento;
+non terminal monto_desc;
+non terminal indice;
 
 // Start Symbol Definition
-start with sentence;
+start with program;
 
-sentence ::= assignment {: System.out.println("End"); :};
-assignment ::= IDENTIFIER ASSIG expression {: System.out.println("Assignment"); :};
-expression ::= expression PLUS term {: System.out.println("+"); :};
-expression ::= expression SUB term {: System.out.println("-"); :};
-expression ::= term {: System.out.println("Expression = Term"); :};
-term ::= term MULT factor {: System.out.println("*"); :};
-term ::= term DIV factor {: System.out.println("/"); :};
-term ::= factor {: System.out.println("Term = factor"); :};
-factor ::= IDENTIFIER:id  {: System.out.println("Id: " + id); :};
-factor ::= INTEGER_CONSTANT:constant {: System.out.println("Constant: " + constant ); :};
-factor ::= OPEN_BRACKET expression CLOSE_BRACKET {: System.out.println("Factor = (Expression)"); :};
+program ::= sentence;
+program ::= program sentence;
+sentence ::= init_block;
+sentence ::= assignment;
+sentence ::= leer;
+sentence ::= escribir;
+sentence ::= si;
+sentence ::= mientras;
+sentence ::= aplicar_descuento;
+
+assignment ::= IDENTIFIER:id ASSIG expression                                   {: System.out.println("Assignment"); gts.addTokenIdAssignment(id+"");:};
+assignment ::= IDENTIFIER:id ASSIG expression2                                  {: System.out.println("Assignment"); gts.addTokenIdAssignment(id+"");:};
+expression2 ::= STRING_CONSTANT:constant                                        {: System.out.println("CONSTANT STRING: " + constant ); gts.addTokenCteAssignment(constant+"", "String"); :};
+expression2 ::= funcion;
+expression ::= expression PLUS term;
+expression ::= expression SUB term;
+expression ::= term                                                             {: System.out.println("Expression = Term");:};
+term ::= term MULT factor;
+term ::= term DIV factor;
+term ::= factor                                                                 {: System.out.println("Term = factor"); :};
+factor ::= IDENTIFIER:id                                                        {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+"");:};
+factor ::= INTEGER_CONSTANT:constant                                            {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); :};
+factor ::= FLOAT_CONSTANT:constant                                              {: System.out.println("CONSTANT FLOAT: " + constant ); gts.addTokenCteAssignment(constant+"", "Float"); :};
+
+factor ::= OPEN_BRACKET expression CLOSE_BRACKET                                {: System.out.println("Factor = (Expression)"); :};
+funcion ::= contar_primos;
+
+init_block ::= INIT OPEN_CURLY_BRACKET list_statement CLOSE_CURLY_BRACKET;
+list_statement ::= list_statement statement;
+list_statement ::= statement;
+statement ::= variable COLON data_type;
+variable ::= variable COMMA IDENTIFIER:id                                       {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+"");:};
+variable ::= IDENTIFIER:id                                                      {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+"");:};
+
+data_type ::= FLOAT                                                            {: gts.addTokenInit("Float"); :};
+data_type ::= INT                                                              {: gts.addTokenInit("Int"); :};
+data_type ::= STRING                                                           {: gts.addTokenInit("String"); :};
+
+leer ::= LEER OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET                   {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+"");:};
+escribir ::= ESCRIBIR OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET           {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+"");:};
+escribir ::= ESCRIBIR OPEN_BRACKET STRING_CONSTANT:constant CLOSE_BRACKET {: System.out.println("CONSTANT STRING: " + constant ); gts.addTokenCteAssignment(constant+"", "String"); :};
+
+si ::= SI OPEN_BRACKET condicion CLOSE_BRACKET sentencia_si;
+si ::= SI OPEN_BRACKET condicion CLOSE_BRACKET sentencia_si SINO sentencia_si;
+sentencia_si ::= OPEN_CURLY_BRACKET program CLOSE_CURLY_BRACKET;
+condicion ::= NOT lista_comparacion;
+condicion ::= lista_comparacion;
+lista_comparacion ::= lista_comparacion comparar_logico comparacion;
+lista_comparacion ::= comparacion;
+comparacion ::= factor comparar_matematico factor;
+comparar_matematico ::= GREATER;
+comparar_matematico ::= EQUAL;
+comparar_matematico ::= LESS;
+comparar_logico ::= AND;
+comparar_logico ::= OR;
+
+mientras ::= MIENTRAS OPEN_BRACKET condicion CLOSE_BRACKET OPEN_CURLY_BRACKET program CLOSE_CURLY_BRACKET;
+
+contar_primos ::= CONTAR_PRIMOS OPEN_BRACKET OPEN_SQUARE_BRACKET lista_parametros CLOSE_SQUARE_BRACKET CLOSE_BRACKET;
+lista_parametros ::= lista_parametros COMMA expression;
+lista_parametros ::= expression;
+
+//aplicarDescuento(27.5, [500, 305, 79.4, 10], 3)
+
+aplicar_descuento ::= APLICAR_DESCUENTO OPEN_BRACKET parametros CLOSE_BRACKET;
+parametros ::=  monto_desc COMMA OPEN_SQUARE_BRACKET lista_precios CLOSE_SQUARE_BRACKET COMMA indice;
+monto_desc ::= FLOAT_CONSTANT:constant                                       {: System.out.println("CONSTANT FLOAT: " + constant ); gts.addTokenCteAssignment(constant+"", "Float"); :};
+monto_desc ::= INTEGER_CONSTANT:constant                                     {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); :};
+indice ::= INTEGER_CONSTANT:constant                                         {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); :};
+lista_precios ::= lista_precios COMMA precio;
+lista_precios ::= precio;
+precio ::= FLOAT_CONSTANT:constant                                           {: System.out.println("CONSTANT FLOAT: " + constant ); gts.addTokenCteAssignment(constant+"", "Float"); :};
+precio ::= INTEGER_CONSTANT:constant                                         {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); :};
