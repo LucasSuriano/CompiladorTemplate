@@ -2,11 +2,13 @@ package lyc.compiler;
 
 import java_cup.runtime.*;
 import lyc.compiler.files.SymbolTableGenerator;
+import lyc.compiler.files.IntermediateCodeGenerator;
 
 class Parser;
 
 action code {:
-SymbolTableGenerator gts = SymbolTableGenerator.getInstance();
+    SymbolTableGenerator gts = SymbolTableGenerator.getInstance();
+    IntermediateCodeGenerator gci = IntermediateCodeGenerator.getInstance();
 :};
 
 // Terminals
@@ -99,7 +101,8 @@ sentence ::= si;
 sentence ::= mientras;
 sentence ::= aplicar_descuento;
 
-assignment ::= IDENTIFIER:id ASSIG expression                                   {: System.out.println("Assignment"); gts.addTokenIdAssignment(id+"");:};
+assignment ::= IDENTIFIER:id ASSIG expression                                   {: System.out.println("Assignment"); gts.addTokenIdAssignment(id+"");
+                                                                                    gci.add(id.toString());gci.add(":=");:};
 assignment ::= IDENTIFIER:id ASSIG expression2                                  {: System.out.println("Assignment"); gts.addTokenIdAssignment(id+"");:};
 expression2 ::= STRING_CONSTANT:constant                                        {: System.out.println("CONSTANT STRING: " + constant ); gts.addTokenCteAssignment(constant+"", "String"); :};
 expression2 ::= funcion;
@@ -109,9 +112,13 @@ expression ::= term                                                             
 term ::= term MULT factor;
 term ::= term DIV factor;
 term ::= factor                                                                 {: System.out.println("Term = factor"); :};
-factor ::= IDENTIFIER:id                                                        {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+"");:};
-factor ::= INTEGER_CONSTANT:constant                                            {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); :};
-factor ::= FLOAT_CONSTANT:constant                                              {: System.out.println("CONSTANT FLOAT: " + constant ); gts.addTokenCteAssignment(constant+"", "Float"); :};
+factor ::= IDENTIFIER:id                                                        {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+"");
+                                                                                    gci.add(id.toString());:};
+factor ::= INTEGER_CONSTANT:constant                                            {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int");
+                                                                                    gci.add(constant.toString());:};
+factor ::= FLOAT_CONSTANT:constant                                              {: System.out.println("CONSTANT FLOAT: " + constant ); gts.addTokenCteAssignment(constant+"", "Float");
+                                                                                    gci.add(constant.toString());:};
+
 
 factor ::= OPEN_BRACKET expression CLOSE_BRACKET                                {: System.out.println("Factor = (Expression)"); :};
 funcion ::= contar_primos;
@@ -144,6 +151,13 @@ comparar_matematico ::= EQUAL;
 comparar_matematico ::= LESS;
 comparar_logico ::= AND;
 comparar_logico ::= OR;
+
+/*comparison ::= expression {: tExpresionAux= tExpresion; :} OP_MAYOR expression {: polacaManager.analizar(tExpresionAux,tExpresion); polacaManager.insert("BLE"); :};
+comparison ::= expression {: tExpresionAux= tExpresion; :} OP_MINOR expression {: polacaManager.analizar(tExpresionAux,tExpresion); polacaManager.insert("BGE"); :};
+comparison ::= expression {: tExpresionAux= tExpresion; :} OP_MAYOREQU expression {: polacaManager.analizar(tExpresionAux,tExpresion); polacaManager.insert("BLT"); :};
+comparison ::= expression {: tExpresionAux= tExpresion; :} OP_MINOREQU expression {: polacaManager.analizar(tExpresionAux,tTermino); polacaManager.insert("BGT"); :};
+comparison ::= expression {: tExpresionAux= tExpresion; :} OP_EQU expression {: polacaManager.analizar(tExpresionAux,tExpresion); polacaManager.insert("BNE"); :};
+comparison ::= expression {: tExpresionAux= tExpresion; :} OP_DISTINCT expression {: polacaManager.analizar(tExpresionAux,tExpresion); polacaManager.insert("BEQ"); :};*/
 
 mientras ::= MIENTRAS OPEN_BRACKET condicion CLOSE_BRACKET OPEN_CURLY_BRACKET program CLOSE_CURLY_BRACKET;
 
