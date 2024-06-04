@@ -46,8 +46,11 @@ Div = "/"
 Assig = ":="
 
 Greater = ">"
+GreaterOrEqual = ">="
 Less = "<"
+LessOrEqual = "<="
 Equal = "=="
+Distinct = "!="
 
 OpenBracket = "("
 CloseBracket = ")"
@@ -98,8 +101,12 @@ StringConstant = {Quote} (.)+ {Quote}
   {Assig}                                   { return symbol(ParserSym.ASSIG); }
 
   {Greater}                                 { return symbol(ParserSym.GREATER); }
+  {GreaterOrEqual}                          { return symbol(ParserSym.GREATER_OR_EQUAL); }
   {Less}                                    { return symbol(ParserSym.LESS); }
+  {LessOrEqual}                             { return symbol(ParserSym.LESS_OR_EQUAL); }
   {Equal}                                   { return symbol(ParserSym.EQUAL); }
+  {Distinct}                                { return symbol(ParserSym.DISTINCT); }
+
 
   {And}                                     { return symbol(ParserSym.AND); }
   {Or}                                      { return symbol(ParserSym.OR); }
