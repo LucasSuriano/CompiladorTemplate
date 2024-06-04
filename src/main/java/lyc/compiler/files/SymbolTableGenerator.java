@@ -49,6 +49,10 @@ public class SymbolTableGenerator implements FileGenerator{
 
     }
 
+    //agregar exception para duplicados
+    //en las reglas de expresion validar que sean de mismo tipo
+    //validar que existan variables
+
     public void addTokenIdAssignment(String token) {
         if(!this.register.containsKey(token)) {
             this.register.put(token,new SymbolTableToken(token, "","",""));
