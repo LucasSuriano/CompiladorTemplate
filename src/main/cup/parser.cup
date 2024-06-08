@@ -9,6 +9,9 @@ class Parser;
 action code {:
     SymbolTableGenerator gts = SymbolTableGenerator.getInstance();
     IntermediateCodeGenerator gci = IntermediateCodeGenerator.getInstance();
+
+    int tope = 0;
+    int pos = 0;
 :};
 
 // Terminals
@@ -80,7 +83,6 @@ non terminal sentencia_si;
 non terminal condicion;
 non terminal lista_comparacion;
 non terminal comparacion;
-non terminal comparar_matematico;
 non terminal comparar_logico;
 non terminal contar_primos;
 non terminal lista_parametros;
@@ -90,12 +92,19 @@ non terminal precio;
 non terminal aplicar_descuento;
 non terminal monto_desc;
 non terminal indice;
+non terminal sentence_list;
+non terminal expression_prime;
+non terminal term_prime;
+non terminal lista_comparacion_prime;
 
 // Start Symbol Definition
 start with program;
 
-program ::= sentence;
-program ::= program sentence;
+program ::= sentence_list;
+
+sentence_list ::= sentence;
+sentence_list ::= sentence_list sentence;
+
 sentence ::= init_block;
 sentence ::= assignment;
 sentence ::= leer;
@@ -108,82 +117,92 @@ assignment ::= IDENTIFIER:id ASSIG expression                                   
                                                                                     gci.add(id.toString()); gci.add(":=");:};
 assignment ::= IDENTIFIER:id ASSIG expression2                                  {: System.out.println("Assignment"); gts.addTokenIdAssignment(id+"");
                                                                                     gci.add(id.toString()); gci.add(":="); :};
+
 expression2 ::= STRING_CONSTANT:constant                                        {: System.out.println("CONSTANT STRING: " + constant ); gts.addTokenCteAssignment(constant+"", "String"); gci.add(constant.toString()); :};
 expression2 ::= funcion;
-expression ::= expression PLUS term                                            {:  gci.add("+");:};
-expression ::= expression SUB term                                            {:  gci.add("-");:};
-expression ::= term                                                             {: System.out.println("Expression = Term");:};
-term ::= term MULT factor                                                    {:  gci.add("*");:};
-term ::= term DIV factor                                                       {:  gci.add("/");:};
-term ::= factor                                                                 {: System.out.println("Term = factor"); :};
+
+expression ::= term;
+expression ::= term expression_prime;
+
+expression_prime ::= PLUS term expression_prime                                {:  gci.add("+");:};
+expression_prime ::= SUB term expression_prime                                 {:  gci.add("-");:};
+
+term ::= factor;
+term ::= factor term_prime;
+
+term_prime ::= MULT factor term_prime                                          {:  gci.add("*");:};
+term_prime ::= DIV factor term_prime                                           {:  gci.add("/");:};
+
 factor ::= IDENTIFIER:id                                                        {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+"");
                                                                                     gci.add(id.toString());:};
 factor ::= INTEGER_CONSTANT:constant                                            {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int");
                                                                                     gci.add(constant.toString());:};
 factor ::= FLOAT_CONSTANT:constant                                              {: System.out.println("CONSTANT FLOAT: " + constant ); gts.addTokenCteAssignment(constant+"", "Float");
                                                                                     gci.add(constant.toString());:};
-
-
 factor ::= OPEN_BRACKET expression CLOSE_BRACKET                                {: System.out.println("Factor = (Expression)"); :};
-funcion ::= contar_primos;                                                      
+
+funcion ::= contar_primos;
 
 init_block ::= INIT OPEN_CURLY_BRACKET list_statement CLOSE_CURLY_BRACKET;
-list_statement ::= list_statement statement;
 list_statement ::= statement;
-statement ::= variable COLON data_type                                        {: gci.add(":"); :};
-variable ::= variable COMMA IDENTIFIER:id                                       {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+""); gci.add(id.toString()); gci.add(":"); :};
+list_statement ::= list_statement statement;
+
+statement ::= variable COLON data_type                                          {: gci.add(":"); :};
 variable ::= IDENTIFIER:id                                                      {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+""); gci.add(id.toString()); :};
+variable ::= variable COMMA IDENTIFIER:id                                       {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+""); gci.add(id.toString()); gci.add(":"); :};
 
 data_type ::= FLOAT                                                             {: gts.addTokenInit("Float");  gci.add("Float"); :};
 data_type ::= INT                                                               {: gts.addTokenInit("Int");    gci.add("Int"); :};
 data_type ::= STRING                                                            {: gts.addTokenInit("String"); gci.add("String"); :};
 
 leer ::= LEER OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET                          {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+""); gci.add(id.toString()); gci.add("leer"); :};
+
 escribir ::= ESCRIBIR OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET                  {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+""); gci.add(id.toString()); gci.add("escribir"); :};
 escribir ::= ESCRIBIR OPEN_BRACKET STRING_CONSTANT:constant CLOSE_BRACKET       {: System.out.println("CONSTANT STRING: " + constant ); gts.addTokenCteAssignment(constant+"", "String"); gci.add(constant.toString()); gci.add("escribir"); :};
 
-si ::= SI OPEN_BRACKET condicion                                                {: gci.apilar(pos); gci.next(); :}
-    CLOSE_BRACKET sentencia_si                                                 {: tope = gci.desapilar(); gci.update(tope, pos+1); :};
-si ::= SI OPEN_BRACKET condicion                                                {: gci.apilar(pos); gci.next(); :}
-    CLOSE_BRACKET sentencia_si                                                  {: gci.add("BI"); tope = gci.desapilar(); gci.update(tope, pos+1); gci.apilar(pos); gci.next(); :}
-    SINO sentencia_si                                                           {: tope = gci.desapilar(); update(tope, pos+1); :};
-sentencia_si ::= OPEN_CURLY_BRACKET program CLOSE_CURLY_BRACKET;
-condicion ::= NOT lista_comparacion                                            {: gci.add("NOT");:};
+si ::= SI OPEN_BRACKET condicion CLOSE_BRACKET OPEN_CURLY_BRACKET {: gci.apilar(); gci.next(); :} program CLOSE_CURLY_BRACKET  {: tope = gci.desapilar(); gci.update(tope,1); :};
+si ::= SI OPEN_BRACKET condicion CLOSE_BRACKET  OPEN_CURLY_BRACKET {: gci.add("BI"); tope = gci.desapilar(); gci.update(tope,1); gci.apilar(); gci.next(); :} program CLOSE_CURLY_BRACKET SINO OPEN_CURLY_BRACKET {: gci.apilar(); gci.next(); :} program CLOSE_CURLY_BRACKET  {: tope = gci.desapilar(); gci.update(tope,1); :};
+
+sentence ::= IF OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET program CLOSE_CURLY_BRACKET {: polacaManager.insert("BI"); :} ELSE OPEN_CURLY_BRACKET program CLOSE_CURLY_BRACKET {: polacaManager.unstack(); :};
+sentence ::= IF OPEN_BRACKET condition  CLOSE_BRACKET OPEN_CURLY_BRACKET program CLOSE_CURLY_BRACKET {: polacaManager.unstack(); :};
+
+condicion ::= NOT lista_comparacion                                             {: gci.add("NOT");:};
 condicion ::= lista_comparacion;
-lista_comparacion ::= lista_comparacion comparar_logico comparacion;
+
 lista_comparacion ::= comparacion;
-comparacion ::= expression GREATER expression                                          {: gci.add("BLE");:};
-comparacion ::= expression GREATER_OR_EQUAL expression                                 {: gci.add("BLT");:};
-comparacion ::= expression LESS expression                                            {: gci.add("BGE");:};
-comparacion ::= expression LESS_OR_EQUAL expression                                    {: gci.add("BGT");:};
-comparacion ::= expression EQUAL expression                                            {: gci.add("BNE");:};
-comparacion ::= expression DISTINCT expression                                         {: gci.add("BEQ");:};
+lista_comparacion ::= comparacion lista_comparacion_prime;
+lista_comparacion_prime ::= comparar_logico comparacion lista_comparacion_prime;
 
-comparar_logico ::= AND                                                        {: gci.add("AND");:};
-comparar_logico ::= OR                                                         {: gci.add("OR");:};
+comparacion ::= expression GREATER expression                                   {: gci.add("CMP"); gci.add("BLE"); :};
+comparacion ::= expression GREATER_OR_EQUAL expression                          {: gci.add("CMP"); gci.add("BLT");:};
+comparacion ::= expression LESS expression                                      {: gci.add("CMP"); gci.add("BGE");:};
+comparacion ::= expression LESS_OR_EQUAL expression                             {: gci.add("CMP"); gci.add("BGT");:};
+comparacion ::= expression EQUAL expression                                     {: gci.add("CMP"); gci.add("BNE");:};
+comparacion ::= expression DISTINCT expression                                  {: gci.add("CMP"); gci.add("BEQ");:};
 
+comparar_logico ::= AND                                                         {: gci.add("AND");:};
+comparar_logico ::= OR                                                          {: gci.add("OR");:};
 
-mientras ::= MIENTRAS                                                           {: gci.apilar(pos); gci.add("Etiqueta"); :}
-    OPEN_BRACKET condicion                                                      {: gci.apilar(pos); gci.next(); :}
-    CLOSE_BRACKET OPEN_CURLY_BRACKET program                                    {: gci.add("BI"); tope = gci.desapilar(); gci.update(tope, pos+1); tope = gci.desapilar(); gci.update(tope, pos); :}
-    CLOSE_CURLY_BRACKET;
+mientras ::= MIENTRAS OPEN_BRACKET condicion CLOSE_BRACKET                     {: gci.apilar(); gci.add("Etiqueta"); :}
+             OPEN_CURLY_BRACKET program CLOSE_CURLY_BRACKET                     {: gci.add("BI"); tope = gci.desapilar(); gci.update(tope,1); tope = gci.desapilar(); gci.update(tope,0); :};
 
 contar_primos ::= CONTAR_PRIMOS OPEN_BRACKET OPEN_SQUARE_BRACKET                {: gci.add("["); :}
-    lista_parametros                                                            {: gci.add("]"); :}
-        CLOSE_SQUARE_BRACKET CLOSE_BRACKET                                     {: gci.add("ContarPrimos"); :};
-lista_parametros ::= lista_parametros COMMA expression;                         
-lista_parametros ::= expression;
+                  lista_parametros CLOSE_SQUARE_BRACKET CLOSE_BRACKET           {: gci.add("ContarPrimos"); :};
 
-//aplicarDescuento(27.5, [500, 305, 79.4, 10], 3)
+lista_parametros ::= expression;
+lista_parametros ::= expression COMMA lista_parametros;
 
 aplicar_descuento ::= APLICAR_DESCUENTO OPEN_BRACKET parametros CLOSE_BRACKET   {: gci.add("aplicarDescuento"); :};
-parametros ::=  monto_desc COMMA  OPEN_SQUARE_BRACKET                            {: gci.add("["); :}
-     lista_precios                                                               {: gci.add("["); :}
-    CLOSE_SQUARE_BRACKET COMMA indice; 
-monto_desc ::= FLOAT_CONSTANT:constant                                           {: System.out.println("CONSTANT FLOAT: " + constant ); gts.addTokenCteAssignment(constant+"", "Float"); gci.add(constant.toString());:};
-monto_desc ::= INTEGER_CONSTANT:constant                                         {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); gci.add(constant.toString()); :};
-indice ::= INTEGER_CONSTANT:constant                                             {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); gci.add(constant.toString());:};
-lista_precios ::= lista_precios COMMA precio;                                    
+
+parametros ::= monto_desc COMMA OPEN_SQUARE_BRACKET lista_precios CLOSE_SQUARE_BRACKET COMMA indice;
+
+monto_desc ::= FLOAT_CONSTANT:constant                                          {: System.out.println("CONSTANT FLOAT: " + constant ); gts.addTokenCteAssignment(constant+"", "Float"); gci.add(constant.toString());:};
+monto_desc ::= INTEGER_CONSTANT:constant                                        {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); gci.add(constant.toString()); :};
+
+indice ::= INTEGER_CONSTANT:constant                                            {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); gci.add(constant.toString());:};
+
 lista_precios ::= precio;
-precio ::= FLOAT_CONSTANT:constant                                               {: System.out.println("CONSTANT FLOAT: " + constant ); gts.addTokenCteAssignment(constant+"", "Float"); gci.add(constant.toString()); :};
-precio ::= INTEGER_CONSTANT:constant                                             {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); gci.add(constant.toString()); :};
+lista_precios ::= precio COMMA lista_precios;
+
+precio ::= FLOAT_CONSTANT:constant                                              {: System.out.println("CONSTANT FLOAT: " + constant ); gts.addTokenCteAssignment(constant+"", "Float"); gci.add(constant.toString()); :};
+precio ::= INTEGER_CONSTANT:constant                                            {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); gci.add(constant.toString()); :};

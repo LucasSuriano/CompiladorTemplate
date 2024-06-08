@@ -62,7 +62,7 @@ public class SymbolTableGenerator implements FileGenerator{
     public void addTokenCteAssignment(String token, String dataType) {
         if(!this.register.containsKey(token)) {
             String newToken = (dataType == "String" ? token.replaceAll("\"", "") : token);
-            this.register.put(token,new SymbolTableToken("_"+newToken,"","",dataType == "String" ? getLength(newToken) : ""));
+            this.register.put(token,new SymbolTableToken("_"+newToken,dataType,newToken,dataType == "String" ? getLength(newToken) : ""));
         }
     }
 

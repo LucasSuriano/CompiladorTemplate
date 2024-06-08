@@ -8,11 +8,11 @@ public class IntermediateCodeGenerator implements FileGenerator {
 
     private static IntermediateCodeGenerator intermedia;
     private List<String> polacaList;
-    private Stack<String> pila;
+    private Stack<Integer> pila;
 
     private IntermediateCodeGenerator() {
         this.polacaList = new ArrayList<>();
-        this.pila = new Stack<String>();
+        this.pila = new Stack<Integer>();
     }
 
     public static IntermediateCodeGenerator getInstance() {
@@ -31,21 +31,32 @@ public class IntermediateCodeGenerator implements FileGenerator {
         this.polacaList.add(dato);
     }
 
-    public void update(Integer pos,String dato) {
-        if(this.polacaList.get(pos) == null)
-            this.polacaList.set(pos, dato);
+    public void update(int pos, int desplazamiento) {
+        int ultimaPos = polacaList.size();
+        if(this.polacaList.get(pos) == null){
+            Integer nuevaUltimaPos = ultimaPos+desplazamiento;
+            System.out.println("NuevaUltimaPos: " + nuevaUltimaPos);
+            System.out.println("Pos: " + pos);
+            System.out.println("Desp: " + desplazamiento);
+            this.polacaList.set(pos, nuevaUltimaPos.toString());
+        }
     }
 
     public void next() {
         this.polacaList.add(null);
     }
 
-    public void apilar(String aux){
-        this.pila.push(aux);
+    public void apilar(){
+        int ultimaPos = polacaList.size();
+        System.out.println("Apila: " + ultimaPos);
+        this.pila.push(ultimaPos);
     }
 
-    public String desapilar(){
-        return this.pila.pop();
+    public int desapilar(){
+        System.out.println("Predesapilar: ");
+        int tope = this.pila.pop();
+        System.out.println("Desapila: " + tope);
+        return tope;
     }
 
     private String recorrerPolaca() {
@@ -59,19 +70,4 @@ public class IntermediateCodeGenerator implements FileGenerator {
 
         return stringPolaca.toString().trim();
     }
-
-    /*public void addSymbol(String name, Type type) throws SemanticException {
-        if (symbols.containsKey(name)) {
-            throw new SemanticException("Variable ya declarada: " + name);
-        }
-        symbols.put(name, new Symbol(name, type));
-    }
-
-    public Symbol getSymbol(String name) throws SemanticException {
-        Symbol symbol = symbols.get(name);
-        if (symbol == null) {
-            throw new SemanticException("Variable no declarada: " + name);
-        }
-        return symbol;
-    }*/
 }
