@@ -28,11 +28,15 @@ public class IntermediateCodeGenerator implements FileGenerator {
     }
 
     public void add(String dato) {
+        System.out.println("ADD: " + dato);
         this.polacaList.add(dato);
     }
 
     public void update(int pos, int desplazamiento) {
         int ultimaPos = polacaList.size();
+        System.out.println("LO QUE QUIERO ACTUALIZAR: " + this.polacaList.get(pos));
+        System.out.println("POS ACTUALIZAR: " + pos);
+        System.out.println("ULTIMA POS ACTUALIZAR: " + ultimaPos);
         if(this.polacaList.get(pos) == null){
             Integer nuevaUltimaPos = ultimaPos+desplazamiento;
             System.out.println("NuevaUltimaPos: " + nuevaUltimaPos);
@@ -42,20 +46,27 @@ public class IntermediateCodeGenerator implements FileGenerator {
         }
     }
 
+    public void goTo(Integer pos) {
+        int ultimaPos = polacaList.size();
+        System.out.println("POS GOTO: " + pos);
+        System.out.println("ULTIMA POS GOTO: " + ultimaPos);
+        this.polacaList.add(pos.toString());
+    }
+
     public void next() {
         this.polacaList.add(null);
+        System.out.println("DEJA ESPACIO LIBRE");
     }
 
     public void apilar(){
         int ultimaPos = polacaList.size();
-        System.out.println("Apila: " + ultimaPos);
+        System.out.println("APILAR: " + ultimaPos);
         this.pila.push(ultimaPos);
     }
 
     public int desapilar(){
-        System.out.println("Predesapilar: ");
+        System.out.println("DESAPILAR");
         int tope = this.pila.pop();
-        System.out.println("Desapila: " + tope);
         return tope;
     }
 
@@ -69,5 +80,14 @@ public class IntermediateCodeGenerator implements FileGenerator {
         }
 
         return stringPolaca.toString().trim();
+    }
+
+    public boolean validarTipoDato(String t1, String t2){
+
+        if( t1.equals(t2))
+            return true;
+        else {
+            throw new Error(t1 + " y " + t2 + " Error de tipo");
+        }
     }
 }

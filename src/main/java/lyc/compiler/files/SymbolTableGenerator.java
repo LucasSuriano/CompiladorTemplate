@@ -1,5 +1,7 @@
 package lyc.compiler.files;
 
+import lyc.compiler.model.DuplicateTokenException;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,9 +37,8 @@ public class SymbolTableGenerator implements FileGenerator{
     }
 
     static String dataTypeAux="";
-    static String tokenAux="";
 
-    public void addTokenInit(String token) {
+    public void addTokenInit(String token) throws DuplicateTokenException{
         String dataType="";
         if(token=="String" || token=="Float" || token=="Int")
         {
@@ -46,7 +47,9 @@ public class SymbolTableGenerator implements FileGenerator{
         else if(!this.register.containsKey(token)) {
             this.register.put(token,new SymbolTableToken(token, dataTypeAux,"",""));
         }
-
+        else{
+            throw new DuplicateTokenException("El token '" + token + "' ya se encuentra en la tabla de simbolos.");
+        }
     }
 
     //agregar exception para duplicados
@@ -64,13 +67,5 @@ public class SymbolTableGenerator implements FileGenerator{
             String newToken = (dataType == "String" ? token.replaceAll("\"", "") : token);
             this.register.put(token,new SymbolTableToken("_"+newToken,dataType,newToken,dataType == "String" ? getLength(newToken) : ""));
         }
-    }
-
-    public ArrayList<SymbolTableToken> getTs() {
-        ArrayList<SymbolTableToken> arr = new ArrayList<>();
-        for ( SymbolTableToken token : this.register.values() ) {
-            arr.add(token);
-        }
-        return arr;
     }
 }

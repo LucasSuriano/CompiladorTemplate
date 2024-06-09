@@ -6,3 +6,8 @@ sino
 {
     b:=b-1
 }
+
+mientras (a > b)
+{
+    a := a + 1
+}

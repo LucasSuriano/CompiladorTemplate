@@ -93,9 +93,6 @@ non terminal aplicar_descuento;
 non terminal monto_desc;
 non terminal indice;
 non terminal sentence_list;
-non terminal expression_prime;
-non terminal term_prime;
-non terminal lista_comparacion_prime;
 
 // Start Symbol Definition
 start with program;
@@ -121,17 +118,13 @@ assignment ::= IDENTIFIER:id ASSIG expression2                                  
 expression2 ::= STRING_CONSTANT:constant                                        {: System.out.println("CONSTANT STRING: " + constant ); gts.addTokenCteAssignment(constant+"", "String"); gci.add(constant.toString()); :};
 expression2 ::= funcion;
 
+expression ::= expression PLUS term                                             {:  gci.add("+");:};
+expression ::= expression SUB term                                              {:  gci.add("-");:};
 expression ::= term;
-expression ::= term expression_prime;
-
-expression_prime ::= PLUS term expression_prime                                {:  gci.add("+");:};
-expression_prime ::= SUB term expression_prime                                 {:  gci.add("-");:};
 
 term ::= factor;
-term ::= factor term_prime;
-
-term_prime ::= MULT factor term_prime                                          {:  gci.add("*");:};
-term_prime ::= DIV factor term_prime                                           {:  gci.add("/");:};
+term ::= term MULT factor                                                       {:  gci.add("*");:};
+term ::= term DIV factor                                                        {:  gci.add("/");:};
 
 factor ::= IDENTIFIER:id                                                        {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+"");
                                                                                     gci.add(id.toString());:};
@@ -160,18 +153,16 @@ leer ::= LEER OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET                          
 escribir ::= ESCRIBIR OPEN_BRACKET IDENTIFIER:id CLOSE_BRACKET                  {: System.out.println("Id: " + id); gts.addTokenIdAssignment(id+""); gci.add(id.toString()); gci.add("escribir"); :};
 escribir ::= ESCRIBIR OPEN_BRACKET STRING_CONSTANT:constant CLOSE_BRACKET       {: System.out.println("CONSTANT STRING: " + constant ); gts.addTokenCteAssignment(constant+"", "String"); gci.add(constant.toString()); gci.add("escribir"); :};
 
-si ::= SI OPEN_BRACKET condicion CLOSE_BRACKET OPEN_CURLY_BRACKET {: gci.apilar(); gci.next(); :} program CLOSE_CURLY_BRACKET  {: tope = gci.desapilar(); gci.update(tope,1); :};
-si ::= SI OPEN_BRACKET condicion CLOSE_BRACKET  OPEN_CURLY_BRACKET {: gci.add("BI"); tope = gci.desapilar(); gci.update(tope,1); gci.apilar(); gci.next(); :} program CLOSE_CURLY_BRACKET SINO OPEN_CURLY_BRACKET {: gci.apilar(); gci.next(); :} program CLOSE_CURLY_BRACKET  {: tope = gci.desapilar(); gci.update(tope,1); :};
+si ::= SI OPEN_BRACKET condicion CLOSE_BRACKET sentencia_si {: tope = gci.desapilar(); gci.update(tope,1); :};
+si ::= SI OPEN_BRACKET condicion CLOSE_BRACKET sentencia_si SINO  {:gci.add("BI"); tope = gci.desapilar(); gci.update(tope,1); gci.apilar(); gci.next();:} OPEN_CURLY_BRACKET program CLOSE_CURLY_BRACKET  {: tope = gci.desapilar(); gci.update(tope,0); :};
 
-sentence ::= IF OPEN_BRACKET condition CLOSE_BRACKET OPEN_CURLY_BRACKET program CLOSE_CURLY_BRACKET {: polacaManager.insert("BI"); :} ELSE OPEN_CURLY_BRACKET program CLOSE_CURLY_BRACKET {: polacaManager.unstack(); :};
-sentence ::= IF OPEN_BRACKET condition  CLOSE_BRACKET OPEN_CURLY_BRACKET program CLOSE_CURLY_BRACKET {: polacaManager.unstack(); :};
+sentencia_si ::= OPEN_CURLY_BRACKET  {: gci.apilar(); gci.next(); :} program CLOSE_CURLY_BRACKET ;
 
 condicion ::= NOT lista_comparacion                                             {: gci.add("NOT");:};
 condicion ::= lista_comparacion;
 
+lista_comparacion ::= lista_comparacion comparar_logico comparacion;
 lista_comparacion ::= comparacion;
-lista_comparacion ::= comparacion lista_comparacion_prime;
-lista_comparacion_prime ::= comparar_logico comparacion lista_comparacion_prime;
 
 comparacion ::= expression GREATER expression                                   {: gci.add("CMP"); gci.add("BLE"); :};
 comparacion ::= expression GREATER_OR_EQUAL expression                          {: gci.add("CMP"); gci.add("BLT");:};
@@ -183,8 +174,8 @@ comparacion ::= expression DISTINCT expression                                  
 comparar_logico ::= AND                                                         {: gci.add("AND");:};
 comparar_logico ::= OR                                                          {: gci.add("OR");:};
 
-mientras ::= MIENTRAS OPEN_BRACKET condicion CLOSE_BRACKET                     {: gci.apilar(); gci.add("Etiqueta"); :}
-             OPEN_CURLY_BRACKET program CLOSE_CURLY_BRACKET                     {: gci.add("BI"); tope = gci.desapilar(); gci.update(tope,1); tope = gci.desapilar(); gci.update(tope,0); :};
+mientras ::= MIENTRAS OPEN_BRACKET {: gci.apilar(); gci.add("Etiqueta"); :} condicion CLOSE_BRACKET
+             OPEN_CURLY_BRACKET {: gci.apilar(); gci.next(); :} program CLOSE_CURLY_BRACKET {: gci.add("BI"); tope = gci.desapilar(); gci.update(tope,1); tope = gci.desapilar(); gci.goTo(tope); :};
 
 contar_primos ::= CONTAR_PRIMOS OPEN_BRACKET OPEN_SQUARE_BRACKET                {: gci.add("["); :}
                   lista_parametros CLOSE_SQUARE_BRACKET CLOSE_BRACKET           {: gci.add("ContarPrimos"); :};
