@@ -1,19 +1,20 @@
 package lyc.compiler.files;
 
 import lyc.compiler.model.DuplicateTokenException;
+import lyc.compiler.model.Symbol;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class SymbolTableGenerator implements FileGenerator{
 
     private static SymbolTableGenerator symbolTable;
     private Map<String,SymbolTableToken> register;
+    private List<Symbol> symbolList;
     public SymbolTableGenerator() {
         this.register = new HashMap<String,SymbolTableToken>();
+        this.symbolList = new ArrayList<Symbol>();
     }
 
     public static SymbolTableGenerator getInstance() {
@@ -32,23 +33,54 @@ public class SymbolTableGenerator implements FileGenerator{
         fileWriter.write(file);
     }
 
-    public String getLength(String token) {
-        return String.valueOf(token.length());
+    public String getFactor(String name) {
+        if(exist(name))
+            return getSymbol(name).getType();
+        else
+            throw new Error(name+ " No ha sido declarada");
+    }
+
+    public Symbol getSymbol(String name) {
+
+        Iterator<Symbol> iterator = symbolList.iterator();
+
+        while (iterator.hasNext()) {
+            Symbol symbol = iterator.next();
+            if (symbol.getName().equals(name))
+                return symbol;
+        }
+
+        /*Si el name no se encuentra en la lista, devuelve Error*/
+        throw new Error(name+ " no se encuentra en SymbolTable");
+    }
+
+    public void addSymbol(String name, String type, String value, Integer length) throws DuplicateTokenException {
+        if (!exist(name)) {
+            symbolList.add(new Symbol(name, type, value, length));
+        }
+        else {
+            throw new DuplicateTokenException("El token '" +  name + "' ya se encuentra en la tabla de simbolos.");
+        }
+    }
+
+    public Boolean exist(String name) {
+        return symbolList.stream().anyMatch(symbol -> symbol.getName().equals(name));
+    }
+
+    public Integer getLength(String token) {
+        return token.length();
     }
 
     static String dataTypeAux="";
 
     public void addTokenInit(String token) throws DuplicateTokenException{
-        String dataType="";
         if(token=="String" || token=="Float" || token=="Int")
         {
             dataTypeAux=token;
         }
         else if(!this.register.containsKey(token)) {
-            this.register.put(token,new SymbolTableToken(token, dataTypeAux,"",""));
-        }
-        else{
-            throw new DuplicateTokenException("El token '" + token + "' ya se encuentra en la tabla de simbolos.");
+            this.register.put(token,new SymbolTableToken(token, dataTypeAux,"",null));
+            addSymbol(token, dataTypeAux, "", null);
         }
     }
 
@@ -56,16 +88,18 @@ public class SymbolTableGenerator implements FileGenerator{
     //en las reglas de expresion validar que sean de mismo tipo
     //validar que existan variables
 
-    public void addTokenIdAssignment(String token) {
+    public void addTokenIdAssignment(String token) throws DuplicateTokenException {
         if(!this.register.containsKey(token)) {
-            this.register.put(token,new SymbolTableToken(token, "","",""));
+            this.register.put(token,new SymbolTableToken(token, "","",null));
+            addSymbol(token, "", "", null);
         }
     }
 
-    public void addTokenCteAssignment(String token, String dataType) {
+    public void addTokenCteAssignment(String token, String dataType) throws DuplicateTokenException{
         if(!this.register.containsKey(token)) {
             String newToken = (dataType == "String" ? token.replaceAll("\"", "") : token);
-            this.register.put(token,new SymbolTableToken("_"+newToken,dataType,newToken,dataType == "String" ? getLength(newToken) : ""));
+            this.register.put(token,new SymbolTableToken("_"+newToken,dataType,newToken,dataType == "String" ? getLength(newToken) : null));
+            addSymbol("_"+newToken, dataType, "", dataType == "String" ? getLength(newToken) : null);
         }
     }
 }

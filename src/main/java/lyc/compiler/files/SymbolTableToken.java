@@ -5,16 +5,16 @@ public class SymbolTableToken {
     private String name;
     private String dataType;
     private String value;
-    private String length;
+    private Integer length;
 
     public SymbolTableToken(){
         this.name = "";
         this.dataType = "";
         this.value = "";
-        this.length = "";
+        this.length = null;
     }
 
-    public SymbolTableToken(String name, String dataType, String value, String length){
+    public SymbolTableToken(String name, String dataType, String value, Integer length){
         this.name = name;
         this.dataType = dataType;
         this.value = value;
@@ -49,11 +49,11 @@ public class SymbolTableToken {
         this.value = value;
     }
 
-    public String getLength() {
+    public Integer getLength() {
         return length;
     }
 
-    public void setLength(String length) {
+    public void setLength(Integer length) {
         this.length = length;
     }
 }

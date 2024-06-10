@@ -3,10 +3,10 @@ package lyc.compiler.model;
 public class Symbol {
     private String name;
     private String value;
-    private DataType type;
+    private String type;
     private Integer length;
 
-    public Symbol(String nombre, DataType tipo, String valor, Integer longitud) {
+    public Symbol(String nombre, String tipo, String valor, Integer longitud) {
         this.name = nombre;
         this.type = tipo;
         this.value = valor;
@@ -21,11 +21,11 @@ public class Symbol {
         this.name = name;
     }
 
-    public DataType getType() {
+    public String getType() {
         return type;
     }
 
-    public void setType(DataType type) {
+    public void setType(String type) {
         this.type = type;
     }
 
