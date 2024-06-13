@@ -1,3 +1,21 @@
+init {
+    a, b, c : Int
+    *-a, b, c, a : Int : No lo admite por variables ya declaradas-*
+    d, e : Float
+    f : String
+}
+
+a:=1
+b:=2+a
+*- g:=2 : No lo admite por variable no declarada.-*
+
+d:=5.5
+e:=d
+*- c:=f : No lo admite por error de tipo de dato.-*
+
+c:=a+b
+*- c:=d+a : No lo admite por error de tipo de dato.-*
+
 si (a > b)
 {
     b:=b+1
@@ -7,7 +25,32 @@ sino
     b:=b-1
 }
 
+si (NOT a > b)
+{
+    escribir("a no es mas grande que b")
+}
+
+si (a > b OR c > b)
+{
+    escribir("cumple OR")
+}
+
+si (a > b AND c > b)
+{
+    escribir("cumple AND")
+}
+
 mientras (a > b)
 {
     a := a + 1
 }
+
+leer(a)
+escribir("ewr")
+escribir(b)
+
+c:=2
+x := ContarPrimos([11,8,2,c])
+
+aplicarDescuento(27.5, [500, 305, 79.4, 10], 3)
+

@@ -71,35 +71,34 @@ public class SymbolTableGenerator implements FileGenerator{
         return token.length();
     }
 
-    static String dataTypeAux="";
-
-    public void addTokenInit(String token) throws DuplicateTokenException{
-        if(token=="String" || token=="Float" || token=="Int")
-        {
-            dataTypeAux=token;
+    public void addTokenInit(List<String> identifiers, String dataType) throws DuplicateTokenException {
+        for(String id : identifiers) {
+            if (!exist(id)) {
+                this.register.put(id,new SymbolTableToken(id, dataType,"",null));
+                addSymbol(id, dataType, "", null);
+            } else {
+                throw new Error("Error de sintaxis: la variable '" + id + "' ya habia sido declarada.");
+            }
         }
-        else if(!this.register.containsKey(token)) {
-            this.register.put(token,new SymbolTableToken(token, dataTypeAux,"",null));
-            addSymbol(token, dataTypeAux, "", null);
-        }
+        identifiers.clear();
     }
 
     //agregar exception para duplicados
     //en las reglas de expresion validar que sean de mismo tipo
     //validar que existan variables
 
-    public void addTokenIdAssignment(String token) throws DuplicateTokenException {
-        if(!this.register.containsKey(token)) {
+    public void addTokenIdAssignment(String token) {
+        /*if(!this.register.containsKey(token)) {
             this.register.put(token,new SymbolTableToken(token, "","",null));
             addSymbol(token, "", "", null);
-        }
+        }*/
     }
 
     public void addTokenCteAssignment(String token, String dataType) throws DuplicateTokenException{
         if(!this.register.containsKey(token)) {
             String newToken = (dataType == "String" ? token.replaceAll("\"", "") : token);
             this.register.put(token,new SymbolTableToken("_"+newToken,dataType,newToken,dataType == "String" ? getLength(newToken) : null));
-            addSymbol("_"+newToken, dataType, "", dataType == "String" ? getLength(newToken) : null);
+            addSymbol(newToken, dataType, newToken, dataType == "String" ? getLength(newToken) : null);
         }
     }
 }

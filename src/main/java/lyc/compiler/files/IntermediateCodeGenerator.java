@@ -90,4 +90,13 @@ public class IntermediateCodeGenerator implements FileGenerator {
             throw new Error(t1 + " y " + t2 + " Error de tipo");
         }
     }
+
+    public boolean analizar(String t1, String t2){
+
+        if( t1.contains(t2) || t2.contains(t1) )
+            return true;
+        else {
+            throw new Error(t1 + " y " + t2 + " Error de tipo");
+        }
+    }
 }
