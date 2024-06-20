@@ -1,9 +1,12 @@
 init {
-    a, b, c : Int
+    a, b, c, x : Int
     *-a, b, c, a : Int : No lo admite por variables ya declaradas-*
     d, e : Float
     f : String
 }
+
+c:=2
+x := ContarPrimos([11,8,2,c])
 
 a:=1
 b:=2+a
@@ -50,7 +53,6 @@ escribir("ewr")
 escribir(b)
 
 c:=2
-x := ContarPrimos([11,8,2,c])
 
 aplicarDescuento(27.5, [500, 305, 79.4, 10], 3)
 

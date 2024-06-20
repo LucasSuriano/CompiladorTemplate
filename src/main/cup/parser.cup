@@ -15,7 +15,8 @@ action code {:
     IntermediateCodeGenerator gci = IntermediateCodeGenerator.getInstance();
 
     int tope = 0;
-    int pos = 0;
+    String precio = null;
+    String montoDesc = null;
     String tFactor, tExpresion, tTermino, tExpresionAux;
     List<String> listaVar = new ArrayList<String>();
 :};
@@ -182,24 +183,54 @@ comparar_logico ::= OR                                                          
 mientras ::= MIENTRAS OPEN_BRACKET {: gci.apilar(); gci.add("ET"); :} condicion CLOSE_BRACKET
              OPEN_CURLY_BRACKET {: gci.apilar(); gci.next(); :} program CLOSE_CURLY_BRACKET {: gci.add("BI"); tope = gci.desapilar(); gci.update(tope,1); tope = gci.desapilar(); gci.goTo(tope); :};
 
-contar_primos ::= CONTAR_PRIMOS OPEN_BRACKET OPEN_SQUARE_BRACKET                {: gci.add("["); :}
-                  lista_parametros CLOSE_SQUARE_BRACKET CLOSE_BRACKET           {: gci.add("]"); gci.add("ContarPrimos"); :};
+contar_primos ::= CONTAR_PRIMOS OPEN_BRACKET OPEN_SQUARE_BRACKET
+                  lista_parametros CLOSE_SQUARE_BRACKET CLOSE_BRACKET           {: gci.add("@cont"); gci.add("0"); gci.add("CMP"); gci.add("BNE"); gci.apilar(); gci.next();
+                                                                                                       gci.add("@contPrimos"); gci.add("1"); gci.add("+"); gci.add("@contPrimos"); gci.add(":=");
+                                                                                                       tope = gci.desapilar(); gci.update(tope,1);:};
 
-lista_parametros ::= expression;
-lista_parametros ::= expression COMMA lista_parametros;
+lista_parametros ::= lista_parametros COMMA {: gci.add("@aux"); :} expression {: gci.add(":="); gci.apilar(); gci.add("ET-CP");
+                    gci.add("@aux"); gci.add("1"); gci.add("CMP"); gci.add("BEQ"); gci.apilar(); gci.next();
+                    gci.add("@aux"); gci.add("2"); gci.add("/"); gci.add("@aux"); gci.add("%"); gci.add("@resto"); gci.add(":=");
+                    gci.add("@resto"); gci.add("0"); gci.add("CMP"); gci.add("BNE"); gci.apilar(); gci.next();
+                    gci.add("@cont"); gci.add("1"); gci.add("+"); gci.add("@cont"); gci.add(":=");
+                    tope = gci.desapilar(); gci.update(tope,1); gci.add("@aux"); gci.add("1"); gci.add("-"); gci.add("@aux"); gci.add(":=");
+                    tope = gci.desapilar(); gci.update(tope,1); gci.add("BI"); tope = gci.desapilar(); gci.goTo(tope);
+                     :};
+lista_parametros ::= {: gci.add("@aux"); :}
+                    expression {: gci.add(":="); gci.add("@cont"); gci.add("0"); gci.add(":=");
+                    gci.add("@contPrimos"); gci.add("0"); gci.add(":="); gci.add("@resto"); gci.add("0"); gci.add(":="); gci.apilar(); gci.add("ET-CP");
+                    gci.add("@aux"); gci.add("1"); gci.add("CMP"); gci.add("BEQ"); gci.apilar(); gci.next();
+                    gci.add("@aux"); gci.add("2"); gci.add("/"); gci.add("@aux"); gci.add("%"); gci.add("@resto"); gci.add(":=");
+                    gci.add("@resto"); gci.add("0"); gci.add("CMP"); gci.add("BNE"); gci.apilar(); gci.next();
+                    gci.add("@cont"); gci.add("1"); gci.add("+"); gci.add("@cont"); gci.add(":=");
+                    tope = gci.desapilar(); gci.update(tope,1); gci.add("@aux"); gci.add("1"); gci.add("-"); gci.add("@aux"); gci.add(":=");
+                    tope = gci.desapilar(); gci.update(tope,1); gci.add("BI"); tope = gci.desapilar(); gci.goTo(tope);
+                     :};
 
-aplicar_descuento ::= APLICAR_DESCUENTO OPEN_BRACKET parametros CLOSE_BRACKET   {: gci.add("aplicarDescuento"); :};
 
-parametros ::= monto_desc COMMA OPEN_SQUARE_BRACKET {: gci.add("["); :}
- lista_precios {: gci.add("]"); :} CLOSE_SQUARE_BRACKET COMMA indice;
+//acomodar iguales
 
-monto_desc ::= FLOAT_CONSTANT:constant                                          {: System.out.println("CONSTANT FLOAT: " + constant ); gts.addTokenCteAssignment(constant+"", "Float"); gci.add(constant.toString());:};
-monto_desc ::= INTEGER_CONSTANT:constant                                        {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); gci.add(constant.toString()); :};
 
-indice ::= INTEGER_CONSTANT:constant                                            {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); gci.add(constant.toString());:};
+aplicar_descuento ::= APLICAR_DESCUENTO OPEN_BRACKET parametros CLOSE_BRACKET;
+parametros ::= monto_desc COMMA OPEN_SQUARE_BRACKET lista_precios CLOSE_SQUARE_BRACKET COMMA indice;
+monto_desc ::= FLOAT_CONSTANT:constant                                          {: this.montoDesc = constant.toString();  gts.addTokenCteAssignment(constant+"", "Float"); :};
+monto_desc ::= INTEGER_CONSTANT:constant                                        {: this.montoDesc = constant.toString();  gts.addTokenCteAssignment(constant+"", "Int"); :};
+indice ::= INTEGER_CONSTANT:constant                                            {: tope = gci.desapilar(); gci.updateIndice(tope,constant.toString()); gts.addTokenCteAssignment(constant+"", "Int"); :};
 
-lista_precios ::= precio;
-lista_precios ::= precio COMMA lista_precios;
+lista_precios ::= lista_precios COMMA precio                                    {:
+                                                                                   gci.add("@pos"); gci.add("@indice"); gci.add("CMP"); gci.add("BGT"); gci.apilar(); gci.next();
+                                                                                   gci.add(this.precio.toString()); gci.add(this.montoDesc.toString()); gci.add("-"); gci.add("@aux"); gci.add("=");
+                                                                                   tope = gci.desapilar(); gci.update(tope, 1); gci.apilar(); gci.next();
+                                                                                   gci.add(this.precio.toString()); gci.add(this.montoDesc.toString()); gci.add("100"); gci.add("/"); gci.add("*"); gci.add("@aux"); gci.add("=");
+                                                                                   tope = gci.desapilar(); gci.update(tope, 1); gci.add("@pos"); gci.add("@pos"); gci.add("1"); gci.add("+"); gci.add("="); :};
 
-precio ::= FLOAT_CONSTANT:constant                                              {: System.out.println("CONSTANT FLOAT: " + constant ); gts.addTokenCteAssignment(constant+"", "Float"); gci.add(constant.toString()); :};
-precio ::= INTEGER_CONSTANT:constant                                            {: System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); gci.add(constant.toString()); :};
+lista_precios ::= precio                                                        {: gci.add("@indice"); gci.apilar(); gci.next(); gci.add(":=");
+                                                                                    gci.add("@pos"); gci.add("0"); gci.add(":="); gci.add("@aux"); gci.add("0"); gci.add("=");
+                                                                                   gci.add("@pos"); gci.add("@indice"); gci.add("CMP"); gci.add("BGT"); gci.apilar(); gci.next();
+                                                                                   gci.add(this.precio.toString()); gci.add(this.montoDesc.toString()); gci.add("-"); gci.add("@aux"); gci.add("=");
+                                                                                   tope = gci.desapilar(); gci.update(tope, 1); gci.apilar(); gci.next();
+                                                                                   gci.add(this.precio.toString()); gci.add(this.montoDesc.toString()); gci.add("100"); gci.add("/"); gci.add("*"); gci.add("@aux"); gci.add("=");
+                                                                                   tope = gci.desapilar(); gci.update(tope, 1); gci.add("@pos"); gci.add("@pos"); gci.add("1"); gci.add("+"); gci.add("="); :};
+
+precio ::= FLOAT_CONSTANT:constant                                              {: gts.addTokenCteAssignment(constant+"", "Float"); System.out.println("PRECIO: " + constant ); this.precio = constant.toString(); :};
+precio ::= INTEGER_CONSTANT:constant                                            {: gts.addTokenCteAssignment(constant+"", "Int"); System.out.println("PRECIO: " + constant ); this.precio = constant.toString(); System.out.println("CONSTANT INT: " + constant ); gts.addTokenCteAssignment(constant+"", "Int"); gci.add(constant.toString()); :};

@@ -82,21 +82,21 @@ public class IntermediateCodeGenerator implements FileGenerator {
         return stringPolaca.toString().trim();
     }
 
-    public boolean validarTipoDato(String t1, String t2){
+    public boolean analizar(String t1, String t2){
 
-        if( t1.equals(t2))
+        if( t1.contains(t2) || t2.contains(t1) )
             return true;
+        else if((t1 == "Int" && t2 == "Float") || (t1 == "Float" && t2 == "Int")) {
+            return true;
+        }
         else {
             throw new Error(t1 + " y " + t2 + " Error de tipo");
         }
     }
 
-    public boolean analizar(String t1, String t2){
-
-        if( t1.contains(t2) || t2.contains(t1) )
-            return true;
-        else {
-            throw new Error(t1 + " y " + t2 + " Error de tipo");
+    public void updateIndice(Integer pos, String dato) {
+        if(this.polacaList.get(pos) == null){
+            this.polacaList.set(pos, dato);
         }
     }
 }
