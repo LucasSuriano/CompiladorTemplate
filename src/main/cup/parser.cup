@@ -3,6 +3,7 @@ package lyc.compiler;
 import java_cup.runtime.*;
 import lyc.compiler.files.SymbolTableGenerator;
 import lyc.compiler.files.IntermediateCodeGenerator;
+import lyc.compiler.files.AsmCodeGenerator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -13,6 +14,7 @@ class Parser;
 action code {:
     SymbolTableGenerator gts = SymbolTableGenerator.getInstance();
     IntermediateCodeGenerator gci = IntermediateCodeGenerator.getInstance();
+    AsmCodeGenerator gca = AsmCodeGenerator.getInstance(gts,gci);
 
     int tope = 0;
     String precio = null;
@@ -99,10 +101,12 @@ non terminal aplicar_descuento;
 non terminal monto_desc;
 non terminal indice;
 non terminal sentence_list;
+non terminal startSymbol;
 
 // Start Symbol Definition
-start with program;
+start with startSymbol;
 
+startSymbol ::= program {: gca.generateAssembler(); :};
 program ::= sentence_list;
 
 sentence_list ::= sentence;

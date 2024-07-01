@@ -37,7 +37,7 @@ public class IntermediateCodeGenerator implements FileGenerator {
         System.out.println("LO QUE QUIERO ACTUALIZAR: " + this.polacaList.get(pos));
         System.out.println("POS ACTUALIZAR: " + pos);
         System.out.println("ULTIMA POS ACTUALIZAR: " + ultimaPos);
-        if(this.polacaList.get(pos) == null){
+        if(this.polacaList.get(pos).compareTo("#") == 0){
             Integer nuevaUltimaPos = ultimaPos+desplazamiento;
             System.out.println("NuevaUltimaPos: " + nuevaUltimaPos);
             System.out.println("Pos: " + pos);
@@ -54,7 +54,7 @@ public class IntermediateCodeGenerator implements FileGenerator {
     }
 
     public void next() {
-        this.polacaList.add(null);
+        this.polacaList.add("#");
         System.out.println("DEJA ESPACIO LIBRE");
     }
 
@@ -95,8 +95,12 @@ public class IntermediateCodeGenerator implements FileGenerator {
     }
 
     public void updateIndice(Integer pos, String dato) {
-        if(this.polacaList.get(pos) == null){
+        if(this.polacaList.get(pos).compareTo("#") == 0){
             this.polacaList.set(pos, dato);
         }
+    }
+
+    public List<String> getPolacaList(){
+        return this.polacaList;
     }
 }

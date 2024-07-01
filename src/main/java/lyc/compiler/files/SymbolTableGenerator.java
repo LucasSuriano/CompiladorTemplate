@@ -101,4 +101,8 @@ public class SymbolTableGenerator implements FileGenerator{
             addSymbol(newToken, dataType, newToken, dataType == "String" ? getLength(newToken) : null);
         }
     }
+
+    public List<Symbol> getSymbolList() {
+        return symbolList;
+    }
 }
